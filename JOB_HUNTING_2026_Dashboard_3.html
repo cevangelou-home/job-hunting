@@ -1,0 +1,680 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Job Hunting 2026 — Dashboard</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=Fraunces:ital,opsz,wght@0,9..144,300;0,9..144,600;1,9..144,300&display=swap" rel="stylesheet">
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --bg:        #F5F2EC;
+    --surface:   #FFFFFF;
+    --border:    #E2DDD5;
+    --text:      #1A1714;
+    --muted:     #7A7269;
+    --accent:    #2A4858;
+    --accent2:   #C17D3C;
+
+    --s-applied:    #D4E8F5;  --s-applied-t:    #1A3E52;
+    --s-interview:  #FAE8C0;  --s-interview-t:  #5C3A08;
+    --s-offer:      #D4EDD8;  --s-offer-t:      #1A4422;
+    --s-rejected:   #F5DDD8;  --s-rejected-t:   #5C1F14;
+    --s-noreply:    #E8E4DD;  --s-noreply-t:    #4A4540;
+    --s-2nd:        #F5E8C0;  --s-2nd-t:        #5C3A08;
+    --s-withdrawn:  #EDD8E8;  --s-withdrawn-t:  #4A1A44;
+  }
+
+  body {
+    font-family: 'DM Mono', monospace;
+    background: var(--bg);
+    color: var(--text);
+    min-height: 100vh;
+    padding: 0;
+  }
+
+  /* ── HEADER ── */
+  header {
+    background: var(--accent);
+    color: #F5F2EC;
+    padding: 28px 40px 24px;
+    display: flex;
+    align-items: flex-end;
+    justify-content: space-between;
+    gap: 20px;
+  }
+
+  header h1 {
+    font-family: 'Fraunces', serif;
+    font-size: 28px;
+    font-weight: 300;
+    letter-spacing: -0.02em;
+    line-height: 1.1;
+  }
+  header h1 em {
+    font-style: italic;
+    color: #A8C4D4;
+  }
+
+  .header-meta {
+    font-size: 11px;
+    color: #8AAABB;
+    text-align: right;
+    line-height: 1.6;
+  }
+
+  /* ── MAIN LAYOUT ── */
+  main {
+    max-width: 1100px;
+    margin: 0 auto;
+    padding: 32px 40px;
+    display: grid;
+    grid-template-columns: 1fr 340px;
+    gap: 28px;
+    align-items: start;
+  }
+
+  /* ── STAT BAR ── */
+  .stat-bar {
+    grid-column: 1 / -1;
+    display: grid;
+    grid-template-columns: repeat(5, 1fr);
+    gap: 12px;
+  }
+
+  .stat-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 4px;
+    padding: 16px 18px;
+    position: relative;
+    overflow: hidden;
+  }
+  .stat-card::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 0; right: 0;
+    height: 3px;
+    background: var(--accent);
+  }
+  .stat-card.interviews::before { background: var(--accent2); }
+  .stat-card.rejected::before   { background: #B84B38; }
+  .stat-card.response::before   { background: #7A9E7E; }
+  .stat-card.followup::before   { background: #9E7A9E; }
+
+  .stat-num {
+    font-family: 'Fraunces', serif;
+    font-size: 36px;
+    font-weight: 600;
+    line-height: 1;
+    color: var(--text);
+    margin-bottom: 6px;
+  }
+  .stat-label {
+    font-size: 10px;
+    color: var(--muted);
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+  }
+
+  /* ── SECTION LABELS ── */
+  .section-label {
+    font-size: 10px;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    color: var(--muted);
+    margin-bottom: 12px;
+    padding-bottom: 8px;
+    border-bottom: 1px solid var(--border);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+
+  /* ── FILTERS ── */
+  .filter-row {
+    display: flex;
+    gap: 6px;
+    flex-wrap: wrap;
+    margin-bottom: 16px;
+  }
+  .filter-btn {
+    font-family: 'DM Mono', monospace;
+    font-size: 11px;
+    padding: 5px 14px;
+    border-radius: 2px;
+    border: 1px solid var(--border);
+    background: var(--surface);
+    color: var(--muted);
+    cursor: pointer;
+    transition: all 0.15s;
+  }
+  .filter-btn:hover { border-color: var(--accent); color: var(--accent); }
+  .filter-btn.active { background: var(--accent); color: #F5F2EC; border-color: var(--accent); }
+
+  /* ── APPLICATION ROWS ── */
+  .app-row {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 4px;
+    padding: 14px 16px;
+    margin-bottom: 8px;
+    display: grid;
+    grid-template-columns: 1fr auto;
+    gap: 8px;
+    align-items: start;
+    transition: border-color 0.15s;
+  }
+  .app-row:hover { border-color: var(--accent); }
+
+  .app-company {
+    font-size: 13px;
+    font-weight: 500;
+    color: var(--text);
+    letter-spacing: 0.01em;
+  }
+  .app-role {
+    font-size: 11px;
+    color: var(--muted);
+    margin-top: 3px;
+    font-style: italic;
+    font-family: 'Fraunces', serif;
+    font-weight: 300;
+  }
+  .app-meta {
+    display: flex;
+    gap: 10px;
+    align-items: center;
+    margin-top: 10px;
+    flex-wrap: wrap;
+  }
+  .app-source {
+    font-size: 10px;
+    color: var(--muted);
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+  }
+  .app-link {
+    font-size: 10px;
+    color: var(--accent);
+    text-decoration: none;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+  }
+  .app-link:hover { text-decoration: underline; }
+
+  .status-pill {
+    font-size: 10px;
+    padding: 4px 10px;
+    border-radius: 2px;
+    font-weight: 500;
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
+    white-space: nowrap;
+  }
+
+  /* ── EMAIL PANEL ── */
+  .email-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 4px;
+    padding: 14px 16px;
+    margin-bottom: 8px;
+    transition: border-color 0.15s;
+  }
+  .email-card:hover { border-color: var(--accent); }
+  .email-subject {
+    font-size: 12px;
+    font-weight: 500;
+    color: var(--text);
+    margin-bottom: 4px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+  .email-sender {
+    font-size: 10px;
+    color: var(--accent2);
+    margin-bottom: 6px;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+  }
+  .email-snippet {
+    font-size: 11px;
+    color: var(--muted);
+    line-height: 1.5;
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+  }
+  .email-date {
+    font-size: 10px;
+    color: var(--muted);
+    margin-top: 8px;
+    text-align: right;
+  }
+
+  /* ── CALENDAR PANEL ── */
+  .calendar-item {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-left: 3px solid var(--accent2);
+    border-radius: 4px;
+    padding: 12px 14px;
+    margin-bottom: 8px;
+  }
+  .cal-title { font-size: 12px; font-weight: 500; color: var(--text); }
+  .cal-when  { font-size: 10px; color: var(--muted); margin-top: 4px; }
+
+  /* ── LOADING / EMPTY ── */
+  .state-msg {
+    text-align: center;
+    padding: 32px 16px;
+    color: var(--muted);
+    font-size: 12px;
+    line-height: 1.8;
+  }
+
+  /* ── REFRESH BTN ── */
+  .refresh-btn {
+    font-family: 'DM Mono', monospace;
+    font-size: 10px;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    background: none;
+    border: 1px solid var(--border);
+    color: var(--muted);
+    padding: 4px 12px;
+    border-radius: 2px;
+    cursor: pointer;
+    transition: all 0.15s;
+  }
+  .refresh-btn:hover { border-color: var(--accent); color: var(--accent); }
+
+  /* ── SIGN-IN PROMPT ── */
+  #auth-prompt {
+    grid-column: 1 / -1;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 4px;
+    padding: 28px 32px;
+    display: none;
+  }
+  #auth-prompt h2 {
+    font-family: 'Fraunces', serif;
+    font-size: 20px;
+    font-weight: 300;
+    margin-bottom: 10px;
+    color: var(--text);
+  }
+  #auth-prompt p { font-size: 12px; color: var(--muted); line-height: 1.7; margin-bottom: 16px; }
+  .gsi-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 10px;
+    background: var(--accent);
+    color: #F5F2EC;
+    border: none;
+    border-radius: 3px;
+    padding: 10px 20px;
+    font-family: 'DM Mono', monospace;
+    font-size: 12px;
+    cursor: pointer;
+    letter-spacing: 0.05em;
+    transition: opacity 0.15s;
+  }
+  .gsi-btn:hover { opacity: 0.85; }
+
+  @media (max-width: 780px) {
+    main { grid-template-columns: 1fr; padding: 20px; }
+    .stat-bar { grid-template-columns: repeat(3, 1fr); }
+    header { padding: 20px; }
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <div>
+    <h1>Job <em>Hunting</em><br>2026</h1>
+  </div>
+  <div class="header-meta">
+    <div id="last-updated">Not yet loaded</div>
+    <div>constantinos.evangelou@gmail.com</div>
+  </div>
+</header>
+
+<main>
+  <!-- STAT BAR -->
+  <div class="stat-bar">
+    <div class="stat-card">
+      <div class="stat-num" id="s-total">—</div>
+      <div class="stat-label">Total applications</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-num" id="s-active">—</div>
+      <div class="stat-label">Active</div>
+    </div>
+    <div class="stat-card interviews">
+      <div class="stat-num" id="s-interviews">—</div>
+      <div class="stat-label">Interviews</div>
+    </div>
+    <div class="stat-card rejected">
+      <div class="stat-num" id="s-rejected">—</div>
+      <div class="stat-label">Rejected</div>
+    </div>
+    <div class="stat-card response">
+      <div class="stat-num" id="s-noreply">—</div>
+      <div class="stat-label">No response</div>
+    </div>
+  </div>
+
+  <!-- AUTH PROMPT (shown if not signed in) -->
+  <div id="auth-prompt">
+    <h2>Connect your Google account</h2>
+    <p>This dashboard reads your Google Drive folders and Gmail labels to show live data. Click below to sign in — you only need to do this once per browser session.</p>
+    <button class="gsi-btn" onclick="signIn()">
+      <svg width="18" height="18" viewBox="0 0 18 18"><path fill="#EA4335" d="M17.64 9.2c0-.637-.057-1.251-.164-1.84H9v3.481h4.844c-.209 1.125-.843 2.078-1.796 2.717v2.258h2.908c1.702-1.567 2.684-3.875 2.684-6.615z"/><path fill="#4285F4" d="M9 18c2.43 0 4.467-.806 5.956-2.18l-2.908-2.259c-.806.54-1.837.86-3.048.86-2.344 0-4.328-1.584-5.036-3.711H.957v2.332A8.997 8.997 0 009 18z"/><path fill="#FBBC05" d="M3.964 10.71A5.41 5.41 0 013.682 9c0-.593.102-1.17.282-1.71V4.958H.957A8.996 8.996 0 000 9c0 1.452.348 2.827.957 4.042l3.007-2.332z"/><path fill="#34A853" d="M9 3.58c1.321 0 2.508.454 3.44 1.345l2.582-2.58C13.463.891 11.426 0 9 0A8.997 8.997 0 00.957 4.958L3.964 6.29C4.672 4.163 6.656 3.58 9 3.58z"/></svg>
+      Sign in with Google
+    </button>
+  </div>
+
+  <!-- LEFT: APPLICATIONS -->
+  <div id="apps-panel">
+    <div class="section-label">
+      <span>Applications</span>
+      <button class="refresh-btn" onclick="loadAll()">↻ Refresh</button>
+    </div>
+    <div class="filter-row">
+      <button class="filter-btn active" onclick="setFilter('all',this)">All</button>
+      <button class="filter-btn" onclick="setFilter('Applied',this)">Applied</button>
+      <button class="filter-btn" onclick="setFilter('Interviewing',this)">Interviewing</button>
+      <button class="filter-btn" onclick="setFilter('Rejected',this)">Rejected</button>
+      <button class="filter-btn" onclick="setFilter('No Response',this)">No response</button>
+    </div>
+    <div id="app-list">
+      <div class="state-msg">Loading applications from Drive…</div>
+    </div>
+  </div>
+
+  <!-- RIGHT: EMAILS + CALENDAR -->
+  <div>
+    <div class="section-label" style="margin-bottom:12px">
+      <span>Recent recruiter emails</span>
+    </div>
+    <div id="email-list">
+      <div class="state-msg">Loading Gmail…</div>
+    </div>
+
+    <div class="section-label" style="margin-top:24px; margin-bottom:12px">
+      <span>Upcoming interviews</span>
+    </div>
+    <div id="cal-list">
+      <div class="state-msg">Loading calendar…</div>
+    </div>
+  </div>
+</main>
+
+<script>
+/* ── CONFIG ── */
+const CLIENT_ID   = '756509329541-usbonqqk6tetiknshuk4l5hob0ucrtv5.apps.googleusercontent.com';
+const SCOPES      = 'https://www.googleapis.com/auth/drive.readonly https://www.googleapis.com/auth/gmail.readonly https://www.googleapis.com/auth/calendar.readonly';
+
+const FOLDER_IDS = {
+  applications: '1pmasb16Yh5kwK--bGO4Jos-aHf0E-wD0',
+  rejections:   '1nTsaIKgDY3MG100Djkp4CPHOvC4eBRlG',
+};
+
+const ROLE_MAP = {
+  'ARRIVAL BANK':       'Head of Customer Experience',
+  'DELOITTE':           'Commercial Manager',
+  'DELLOITE':           'Commercial Manager',
+  'HUMAN ASSET CYPRUS': 'Head of Information Security',
+  'STAFF MATTERS':      'Head of Customer Success – Payments',
+};
+
+/* ── STATUS STYLES ── */
+const STATUS_STYLE = {
+  'Applied':     'background:var(--s-applied);color:var(--s-applied-t)',
+  'Interviewing':'background:var(--s-interview);color:var(--s-interview-t)',
+  '2nd Round':   'background:var(--s-2nd);color:var(--s-2nd-t)',
+  'Offer':       'background:var(--s-offer);color:var(--s-offer-t)',
+  'Rejected':    'background:var(--s-rejected);color:var(--s-rejected-t)',
+  'No Response': 'background:var(--s-noreply);color:var(--s-noreply-t)',
+  'Withdrawn':   'background:var(--s-withdrawn);color:var(--s-withdrawn-t)',
+};
+
+/* ── STATE ── */
+let token = null;
+let allApps = [];
+let currentFilter = 'all';
+
+/* ── AUTH ── */
+function signIn() {
+  const url = `https://accounts.google.com/o/oauth2/v2/auth?client_id=${CLIENT_ID}&redirect_uri=${encodeURIComponent(location.href.split('?')[0])}&response_type=token&scope=${encodeURIComponent(SCOPES)}&prompt=consent`;
+  window.location.href = url;
+}
+
+function getTokenFromHash() {
+  const params = new URLSearchParams(location.hash.replace('#',''));
+  const t = params.get('access_token');
+  if (t) { token = t; history.replaceState(null,'',location.pathname); }
+}
+
+async function gapi(url) {
+  const r = await fetch(url, { headers: { Authorization: `Bearer ${token}` } });
+  if (!r.ok) throw new Error(`API error ${r.status}`);
+  return r.json();
+}
+
+/* ── DRIVE ── */
+async function loadApplications() {
+  const rows = [];
+  for (const [type, folderId] of Object.entries(FOLDER_IDS)) {
+    const status = type === 'rejections' ? 'Rejected' : 'Applied';
+    const data = await gapi(
+      `https://www.googleapis.com/drive/v3/files?q='${folderId}'+in+parents+and+mimeType='application/vnd.google-apps.folder'+and+trashed=false&fields=files(id,name,webViewLink)&pageSize=50`
+    );
+    (data.files || []).forEach(f => {
+      rows.push({
+        company: f.name,
+        role: ROLE_MAP[f.name.toUpperCase()] || '',
+        status,
+        link: f.webViewLink,
+      });
+    });
+  }
+  return rows;
+}
+
+/* ── GMAIL ── */
+async function loadEmails() {
+  const list = await gapi(
+    `https://gmail.googleapis.com/gmail/v1/users/me/threads?labelIds=Label_29&maxResults=6`
+  );
+  const threads = list.threads || [];
+  const results = [];
+  for (const t of threads.slice(0,6)) {
+    const detail = await gapi(`https://gmail.googleapis.com/gmail/v1/users/me/threads/${t.id}?format=metadata&metadataHeaders=Subject&metadataHeaders=From&metadataHeaders=Date`);
+    const msg = detail.messages?.[detail.messages.length - 1];
+    if (!msg) continue;
+    const get = name => msg.payload?.headers?.find(h => h.name === name)?.value || '';
+    results.push({
+      subject: get('Subject'),
+      sender:  get('From').replace(/<.*>/, '').trim(),
+      date:    get('Date'),
+      snippet: msg.snippet || '',
+    });
+  }
+  return results;
+}
+
+/* ── CALENDAR ── */
+async function loadCalendar() {
+  const now = new Date().toISOString();
+  const end = new Date(Date.now() + 30*24*60*60*1000).toISOString();
+  const data = await gapi(
+    `https://www.googleapis.com/calendar/v3/calendars/primary/events?timeMin=${now}&timeMax=${end}&q=Interview&singleEvents=true&orderBy=startTime&maxResults=5`
+  );
+  return (data.items || []).map(e => ({
+    title: e.summary,
+    start: e.start?.dateTime || e.start?.date,
+  }));
+}
+
+/* ── RENDER ── */
+function setFilter(f, btn) {
+  currentFilter = f;
+  document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  renderApps();
+}
+
+function renderApps() {
+  const list = document.getElementById('app-list');
+  const shown = currentFilter === 'all' ? allApps : allApps.filter(a => a.status === currentFilter);
+  if (!shown.length) {
+    list.innerHTML = '<div class="state-msg">No applications match this filter.</div>';
+    return;
+  }
+  list.innerHTML = shown.map(a => `
+    <div class="app-row">
+      <div>
+        <div class="app-company">${a.company}</div>
+        ${a.role ? `<div class="app-role">${a.role}</div>` : ''}
+        <div class="app-meta">
+          <span class="app-source">${a.source || 'LinkedIn'}</span>
+          <a class="app-link" href="${a.link}" target="_blank">↗ Drive folder</a>
+        </div>
+      </div>
+      <div><span class="status-pill" style="${STATUS_STYLE[a.status] || STATUS_STYLE['No Response']}">${a.status}</span></div>
+    </div>
+  `).join('');
+}
+
+function renderStats() {
+  const total      = allApps.length;
+  const active     = allApps.filter(a => ['Applied','Interviewing','2nd Round','Offer'].includes(a.status)).length;
+  const interviews = allApps.filter(a => ['Interviewing','2nd Round'].includes(a.status)).length;
+  const rejected   = allApps.filter(a => a.status === 'Rejected').length;
+  const noreply    = allApps.filter(a => a.status === 'No Response').length;
+  document.getElementById('s-total').textContent      = total;
+  document.getElementById('s-active').textContent     = active;
+  document.getElementById('s-interviews').textContent = interviews;
+  document.getElementById('s-rejected').textContent   = rejected;
+  document.getElementById('s-noreply').textContent    = noreply;
+}
+
+function renderEmails(emails) {
+  const el = document.getElementById('email-list');
+  if (!emails.length) { el.innerHTML = '<div class="state-msg">No recent recruiter emails found.</div>'; return; }
+  el.innerHTML = emails.map(e => {
+    const d = e.date ? new Date(e.date).toLocaleDateString('en-GB', {day:'numeric',month:'short'}) : '';
+    return `
+      <div class="email-card">
+        <div class="email-subject">${e.subject || '(no subject)'}</div>
+        <div class="email-sender">${e.sender}</div>
+        <div class="email-snippet">${e.snippet}</div>
+        ${d ? `<div class="email-date">${d}</div>` : ''}
+      </div>
+    `;
+  }).join('');
+}
+
+function renderCalendar(events) {
+  const el = document.getElementById('cal-list');
+  if (!events.length) {
+    el.innerHTML = '<div class="state-msg">No upcoming interviews in the next 30 days.</div>';
+    return;
+  }
+  el.innerHTML = events.map(e => {
+    const d = e.start ? new Date(e.start).toLocaleDateString('en-GB', {weekday:'short',day:'numeric',month:'short',hour:'2-digit',minute:'2-digit'}) : '';
+    return `
+      <div class="calendar-item">
+        <div class="cal-title">${e.title}</div>
+        <div class="cal-when">${d}</div>
+      </div>
+    `;
+  }).join('');
+}
+
+/* ── LOAD ALL ── */
+async function loadAll() {
+  document.getElementById('app-list').innerHTML   = '<div class="state-msg">Loading from Drive…</div>';
+  document.getElementById('email-list').innerHTML = '<div class="state-msg">Loading Gmail…</div>';
+  document.getElementById('cal-list').innerHTML   = '<div class="state-msg">Loading calendar…</div>';
+
+  try {
+    const [apps, emails, calEvents] = await Promise.all([
+      loadApplications(),
+      loadEmails(),
+      loadCalendar(),
+    ]);
+    allApps = apps;
+    renderStats();
+    renderApps();
+    renderEmails(emails);
+    renderCalendar(calEvents);
+    document.getElementById('last-updated').textContent = 'Updated ' + new Date().toLocaleTimeString('en-GB',{hour:'2-digit',minute:'2-digit'});
+  } catch(err) {
+    console.error(err);
+    document.getElementById('app-list').innerHTML = `<div class="state-msg">Error loading data.<br>Check console for details.</div>`;
+  }
+}
+
+/* ── INIT ── */
+getTokenFromHash();
+if (!token && CLIENT_ID === 'YOUR_GOOGLE_CLIENT_ID') {
+  /* No OAuth configured — use static data so the dashboard is still useful */
+  allApps = [
+    {company:'Arrival Bank',       role:'Head of Customer Experience',      status:'Applied',  link:'https://drive.google.com/drive/folders/13niUlZwubuglcJKDFpNw1Z-1Q_C60kkf'},
+    {company:'Deloitte',           role:'Commercial Manager',               status:'Applied',  link:'https://drive.google.com/drive/folders/1f5V8y-7s1OPC-v13UyyaidAHLkNimufK'},
+    {company:'Human Asset Cyprus', role:'Head of Information Security',     status:'Applied',  link:'https://drive.google.com/drive/folders/13ugfuVmtwIOZwlJhv82R6W1Z01-QReGC'},
+    {company:'Staff Matters',      role:'Head of Customer Success – Payments',status:'Applied',link:'https://drive.google.com/drive/folders/1S4JwhvGefjzMvJ_t1JNpjo2YgF8-X9zI'},
+    {company:'Bolt',               role:'',                                 status:'Rejected', link:'https://drive.google.com/drive/folders/1JI541cymz6kV7mYVKqSvCqt9lupYoF5c'},
+    {company:'Wolt',               role:'',                                 status:'Rejected', link:'https://drive.google.com/drive/folders/1jTgx6D1DmsRTflbiAlrWE_ky30G6SeQG'},
+    {company:'Red Core',           role:'',                                 status:'Rejected', link:'https://drive.google.com/drive/folders/1_Ew2lvGb4P8ZxEZH0meWmZBERkX7a0O2'},
+    {company:'Mayflower',          role:'',                                 status:'Rejected', link:'https://drive.google.com/drive/folders/18atqQH-PAiCri7QR99nlMuIsBB5zrD0s'},
+    {company:'Energame',           role:'',                                 status:'Rejected', link:'https://drive.google.com/drive/folders/1xP21U-00j8yAJ2KkJruHO0MtAeRZmwF5'},
+  ];
+  renderStats();
+  renderApps();
+  document.getElementById('email-list').innerHTML = `
+    <div class="email-card">
+      <div class="email-subject">ICAP ESS Call</div>
+      <div class="email-sender">Christiana Kyriacou — ICAP</div>
+      <div class="email-snippet">Microsoft Teams meeting invite for introductory call regarding C-level recruitment opportunities.</div>
+      <div class="email-date">29 Apr</div>
+    </div>
+    <div class="email-card">
+      <div class="email-subject">RE: C level recruitments</div>
+      <div class="email-sender">Cleri Solomou Mela — Boyden</div>
+      <div class="email-snippet">Good afternoon Cleri, I am attaching my CV as I believe will provide speed to our forthcoming meeting.</div>
+      <div class="email-date">8 May</div>
+    </div>
+    <div class="email-card">
+      <div class="email-subject">RE: Senior Leadership Opportunities</div>
+      <div class="email-sender">Lucianna Zodo — GRS</div>
+      <div class="email-snippet">Good afternoon Constantinos, Thank you for your email. Please send us your updated CV to review.</div>
+      <div class="email-date">27 May</div>
+    </div>
+    <div class="email-card">
+      <div class="email-subject">RE: Head of Customer Success — Ref 4312</div>
+      <div class="email-sender">Admin — Staff Matters</div>
+      <div class="email-snippet">Dear Constantinos, Your application has been received and will be recorded by our Administration Team.</div>
+      <div class="email-date">29 May</div>
+    </div>
+  `;
+  document.getElementById('cal-list').innerHTML = '<div class="state-msg">No upcoming interviews scheduled yet.</div>';
+  document.getElementById('last-updated').textContent = 'Static data (OAuth not configured)';
+} else if (token) {
+  loadAll();
+} else {
+  document.getElementById('auth-prompt').style.display = 'block';
+}
+</script>
+
+</body>
+</html>
