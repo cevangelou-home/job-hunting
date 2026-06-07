@@ -491,23 +491,33 @@ async function loadApplications() {
 
 /* ── GMAIL ── */
 async function loadEmails() {
-  const labelQuery = 'label:JOB-HUNTING-2026-Recruiters';
-  const list = await gapi(
-    `https://gmail.googleapis.com/gmail/v1/users/me/threads?q=${encodeURIComponent(labelQuery)}&maxResults=6`
-  );
-  const threads = list.threads || [];
+  // Query each recruiter sublabel by ID and combine results
+  const labelIds = ['Label_33','Label_34','Label_35','Label_36','Label_37','Label_38'];
+  const seen = new Set();
+  const allThreads = [];
+  for (const lid of labelIds) {
+    try {
+      const list = await gapi(`https://gmail.googleapis.com/gmail/v1/users/me/threads?labelIds=${lid}&maxResults=3`);
+      for (const t of (list.threads || [])) {
+        if (!seen.has(t.id)) { seen.add(t.id); allThreads.push(t); }
+      }
+    } catch(e) {}
+  }
+  // Sort by most recent and take top 6
   const results = [];
-  for (const t of threads.slice(0,6)) {
-    const detail = await gapi(`https://gmail.googleapis.com/gmail/v1/users/me/threads/${t.id}?format=metadata&metadataHeaders=Subject&metadataHeaders=From&metadataHeaders=Date`);
-    const msg = detail.messages?.[detail.messages.length - 1];
-    if (!msg) continue;
-    const get = name => msg.payload?.headers?.find(h => h.name === name)?.value || '';
-    results.push({
-      subject: get('Subject'),
-      sender:  get('From').replace(/<.*>/, '').trim(),
-      date:    get('Date'),
-      snippet: msg.snippet || '',
-    });
+  for (const t of allThreads.slice(0,6)) {
+    try {
+      const detail = await gapi(`https://gmail.googleapis.com/gmail/v1/users/me/threads/${t.id}?format=metadata&metadataHeaders=Subject&metadataHeaders=From&metadataHeaders=Date`);
+      const msg = detail.messages?.[detail.messages.length - 1];
+      if (!msg) continue;
+      const get = name => msg.payload?.headers?.find(h => h.name === name)?.value || '';
+      results.push({
+        subject: get('Subject'),
+        sender:  get('From').replace(/<.*>/, '').trim(),
+        date:    get('Date'),
+        snippet: msg.snippet || '',
+      });
+    } catch(e) {}
   }
   return results;
 }
