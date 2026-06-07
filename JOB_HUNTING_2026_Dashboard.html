@@ -491,19 +491,24 @@ async function loadApplications() {
 
 /* ── GMAIL ── */
 async function loadEmails() {
-  // Query each recruiter sublabel by ID and combine results
-  const labelIds = ['Label_33','Label_34','Label_35','Label_36','Label_37','Label_38'];
+  const queries = [
+    'label:JOB-HUNTING-2026-Recruiters-ICAP',
+    'label:JOB-HUNTING-2026-Recruiters-BOYDEN',
+    'label:JOB-HUNTING-2026-Recruiters-GRS',
+    'label:JOB-HUNTING-2026-Recruiters-CAREER-FINDERS',
+    'label:JOB-HUNTING-2026-Recruiters-STAFF-MATTERS',
+    'label:JOB-HUNTING-2026-Recruiters-MUFG',
+  ];
   const seen = new Set();
   const allThreads = [];
-  for (const lid of labelIds) {
+  for (const q of queries) {
     try {
-      const list = await gapi(`https://gmail.googleapis.com/gmail/v1/users/me/threads?labelIds=${lid}&maxResults=3`);
+      const list = await gapi(`https://gmail.googleapis.com/gmail/v1/users/me/threads?q=${encodeURIComponent(q)}&maxResults=3`);
       for (const t of (list.threads || [])) {
         if (!seen.has(t.id)) { seen.add(t.id); allThreads.push(t); }
       }
     } catch(e) {}
   }
-  // Sort by most recent and take top 6
   const results = [];
   for (const t of allThreads.slice(0,6)) {
     try {
